@@ -8,7 +8,7 @@ class Parser {
 	private $parsedChunk = false;
 
 
-	public function __construct($elementStartHandler,$dataHandler = null) {
+	public function __construct($elementStartHandler,$dataHandler) {
 
 		// create new XML parser
 		$this->XMLParser = xml_parser_create();
@@ -26,18 +26,15 @@ class Parser {
 				$nodePathList[] = $name;
 				$nodePathString = implode('/',$nodePathList);
 
-				if ($elementStartHandler !== null) {
-					$elementStartHandler($name,$nodePathString,$attribList);
-				}
+				// call $elementStartHandler with open node details
+				$elementStartHandler($name,$nodePathString,$attribList);
 			},
 			function($parser,$name)
 				use ($dataHandler,&$nodePathList,&$nodePathString,&$elementData) {
 
-				// call the $dataHandler now with data stocked up in $elementData
-				if ($dataHandler !== null) {
-					$dataHandler($nodePathString,$elementData);
-					$elementData = ''; // reset
-				}
+				// call $dataHandler now with node data buffered in $elementData
+				$dataHandler($nodePathString,$elementData);
+				$elementData = ''; // reset
 
 				// update node path (level up)
 				array_pop($nodePathList);
@@ -45,18 +42,16 @@ class Parser {
 			}
 		);
 
-		// setup (optional) element data handler
-		if ($dataHandler !== null) {
-			xml_set_character_data_handler(
-				$this->XMLParser,
-				function($parser,$data) use (&$elementData) {
+		// setup element data handler
+		xml_set_character_data_handler(
+			$this->XMLParser,
+			function($parser,$data) use (&$elementData) {
 
-					// note: the function here will be called multiple times for a single node
-					// if linefeeds are found - so we batch up all these calls into a single string
-					$elementData .= $data;
-				}
-			);
-		}
+				// note: the function here will be called multiple times for a single node
+				// if linefeeds are found - so we batch up all these calls into a single string
+				$elementData .= $data;
+			}
+		);
 	}
 
 	public function parseChunk($data) {
