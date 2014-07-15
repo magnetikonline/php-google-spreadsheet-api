@@ -13,32 +13,32 @@ class Parser {
 		// create new XML parser
 		$this->XMLParser = xml_parser_create();
 		$nodePathList = [];
-		$nodePathString = '';
+		$nodePath = '';
 		$elementData = '';
 
 		// setup element start/end handlers
 		xml_set_element_handler(
 			$this->XMLParser,
 			function($parser,$name,array $attribList)
-				use ($elementStartHandler,&$nodePathList,&$nodePathString) {
+				use ($elementStartHandler,&$nodePathList,&$nodePath) {
 
 				// update node path (level down)
 				$nodePathList[] = $name;
-				$nodePathString = implode('/',$nodePathList);
+				$nodePath = implode('/',$nodePathList);
 
 				// call $elementStartHandler with open node details
-				$elementStartHandler($name,$nodePathString,$attribList);
+				$elementStartHandler($name,$nodePath,$attribList);
 			},
 			function($parser,$name)
-				use ($dataHandler,&$nodePathList,&$nodePathString,&$elementData) {
+				use ($dataHandler,&$nodePathList,&$nodePath,&$elementData) {
 
 				// call $dataHandler now with node data buffered in $elementData
-				$dataHandler($nodePathString,$elementData);
+				$dataHandler($nodePath,$elementData);
 				$elementData = ''; // reset
 
 				// update node path (level up)
 				array_pop($nodePathList);
-				$nodePathString = implode('/',$nodePathList);
+				$nodePath = implode('/',$nodePathList);
 			}
 		);
 
