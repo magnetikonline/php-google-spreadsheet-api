@@ -26,20 +26,20 @@ class BuildRequestURL extends Base {
 		// ensure all scopes have trailing forward slash
 		foreach ($scopeList as &$scopeItem) $scopeItem = rtrim($scopeItem,'/') . '/';
 
-		$buildQueryString = function(array $list) {
+		$buildQuerystring = function(array $list) {
 
-			$queryStringList = [];
+			$querystringList = [];
 			foreach ($list as $key => $value) {
-				$queryStringList[] = rawurlencode($key) . '=' . rawurlencode($value);
+				$querystringList[] = rawurlencode($key) . '=' . rawurlencode($value);
 			}
 
-			return implode('&',$queryStringList);
+			return implode('&',$querystringList);
 		};
 
 		return sprintf(
 			"%s/%s?%s\n\n",
 			$OAuth2URLList['base'],$OAuth2URLList['auth'],
-			$buildQueryString([
+			$buildQuerystring([
 				'access_type' => 'offline',
 				'approval_prompt' => 'force',
 				'client_id' => $this->config['clientID'],

@@ -5,7 +5,7 @@ namespace GoogleSpreadsheet\API;
 class Parser {
 
 	private $XMLParser;
-	private $parsedChunk = false;
+	private $XMLParsedChunk = false;
 
 
 	public function __construct($elementStartHandler,$dataHandler) {
@@ -54,27 +54,30 @@ class Parser {
 		);
 	}
 
-	public function parseChunk($data) {
+	public function process($data) {
 
-		$this->parseXML($data);
-		$this->parsedChunk = true;
-	}
-
-	public function close() {
-
-		// used to signify the final chunk of XML to be parsed
-		if ($this->parsedChunk) $this->parseXML('',true);
-		xml_parser_free($this->XMLParser);
-	}
-
-	private function parseXML($data,$finalChunk = false) {
-
-		if (!xml_parse($this->XMLParser,$data,$finalChunk)) {
+		if (!xml_parse(
+			$this->XMLParser,
+			($data === true) ? '' : $data, // ($data === true) to signify final chunk of XML
+			($data === true)
+		)) {
 			// throw XML parse exception
 			throw new \Exception(
 				'XML parse error: ' .
 				xml_error_string(xml_get_error_code($this->XMLParser))
 			);
 		}
+
+		$this->XMLParsedChunk = true;
+	}
+
+	public function close() {
+
+		if ($this->XMLParsedChunk) {
+			// used to signify the final chunk of XML to be parsed
+			$this->process(true);
+		}
+
+		xml_parser_free($this->XMLParser);
 	}
 }

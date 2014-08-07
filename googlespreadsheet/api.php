@@ -32,7 +32,7 @@ class API {
 			null,
 			function($data) use ($parser,&$hasResponseData) {
 
-				$parser->parseChunk($data);
+				$parser->process($data);
 				$hasResponseData = true;
 			}
 		);
@@ -66,7 +66,7 @@ class API {
 				$spreadsheetKey
 			),
 			null,
-			function($data) use ($parser) { $parser->parseChunk($data); }
+			function($data) use ($parser) { $parser->process($data); }
 		);
 
 		// end of XML parse
@@ -127,7 +127,7 @@ class API {
 				$worksheetID
 			),
 			null,
-			function($data) use ($parser) { $parser->parseChunk($data); }
+			function($data) use ($parser) { $parser->process($data); }
 		);
 
 		// end of XML parse - add final parsed data row
@@ -242,7 +242,7 @@ class API {
 					: ''
 			),
 			null,
-			function($data) use ($parser) { $parser->parseChunk($data); }
+			function($data) use ($parser) { $parser->process($data); }
 		);
 
 		// end of XML parse - add final parsed cell item
