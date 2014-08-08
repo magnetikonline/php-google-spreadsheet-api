@@ -440,7 +440,7 @@ class API {
 
 		if ($writeHandler !== null) {
 			$optionList[CURLOPT_WRITEFUNCTION] =
-				// proxy handler so we can pass the HTTP response code and write data
+				// proxy so we can capture HTTP response code before using given write handler
 				function($curlConn,$data) use ($writeHandler,&$responseHTTPCode,&$responseBody) {
 
 					// fetch HTTP response code if not known yet
