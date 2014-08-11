@@ -101,18 +101,18 @@ class API {
 
 		// init XML parser
 		$parser = new API\Parser(
-			function($name,$nodePath) use ($addDataItem,&$dataItem) {
+			function($name,$elementPath) use ($addDataItem,&$dataItem) {
 
-				if ($nodePath == 'FEED/ENTRY') {
+				if ($elementPath == 'FEED/ENTRY') {
 					// store last data row and start new row
 					$addDataItem($dataItem);
 					$dataItem = [];
 				}
 			},
-			function($nodePath,$data) use (&$dataItem) {
+			function($elementPath,$data) use (&$dataItem) {
 
-				// looking for a header node type
-				if (preg_match('/^FEED\/ENTRY\/GSX:(?P<name>[^\/]+)$/',$nodePath,$match)) {
+				// looking for a header element type
+				if (preg_match('/^FEED\/ENTRY\/GSX:(?P<name>[^\/]+)$/',$elementPath,$match)) {
 					$dataItem[strtolower($match['name'])] = trim($data);
 				}
 			}
@@ -195,9 +195,9 @@ class API {
 
 		// init XML parser
 		$parser = new API\Parser(
-			function($name,$nodePath,array $attribList) use ($addCellItem,&$cellItemData) {
+			function($name,$elementPath,array $attribList) use ($addCellItem,&$cellItemData) {
 
-				switch ($nodePath) {
+				switch ($elementPath) {
 					case 'FEED/ENTRY':
 						// store last data row and start new row
 						$addCellItem($cellItemData);
@@ -216,9 +216,9 @@ class API {
 						break;
 				}
 			},
-			function($nodePath,$data) use (&$cellItemData) {
+			function($elementPath,$data) use (&$cellItemData) {
 
-				switch ($nodePath) {
+				switch ($elementPath) {
 					case 'FEED/ENTRY/TITLE':
 						$cellItemData['ref'] = $data; // cell reference (e.g. "B1")
 						break;

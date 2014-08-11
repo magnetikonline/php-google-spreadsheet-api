@@ -7,31 +7,31 @@ class SimpleEntry extends \GoogleSpreadsheet\API\Parser {
 	private $entryList = [];
 	private $entryItem = [];
 	private $indexRegexp;
-	private $additionalNodeSaveList;
+	private $additionalElementSaveList;
 
 
 	public function __construct(
 		$indexRegexp,
-		array $additionalNodeSaveList = []
+		array $additionalElementSaveList = []
 	) {
 
-		// save simple entry regexp and additional nodes to save for an entry
+		// save simple entry regexp and (optional) additional elements to save for an entry
 		$this->indexRegexp = $indexRegexp;
-		$this->additionalNodeSaveList = $additionalNodeSaveList;
+		$this->additionalElementSaveList = $additionalElementSaveList;
 
 		// init XML parser
 		parent::__construct(
-			function($name,$nodePath) {
+			function($name,$elementPath) {
 
-				if ($nodePath == 'FEED/ENTRY') {
+				if ($elementPath == 'FEED/ENTRY') {
 					// store last entry and start next
 					$this->addItem($this->entryItem);
 					$this->entryItem = [];
 				}
 			},
-			function($nodePath,$data) {
+			function($elementPath,$data) {
 
-				switch ($nodePath) {
+				switch ($elementPath) {
 					case 'FEED/ENTRY/ID':
 						$this->entryItem['ID'] = $data;
 						break;
@@ -45,13 +45,13 @@ class SimpleEntry extends \GoogleSpreadsheet\API\Parser {
 						break;
 
 					default:
-						// additional nodes to save
+						// additional elements to save
 						if (
-							$this->additionalNodeSaveList &&
-							(isset($this->additionalNodeSaveList[$nodePath]))
+							$this->additionalElementSaveList &&
+							(isset($this->additionalElementSaveList[$elementPath]))
 						) {
 							// found one - add to stack
-							$this->entryItem[$this->additionalNodeSaveList[$nodePath]] = $data;
+							$this->entryItem[$this->additionalElementSaveList[$elementPath]] = $data;
 						}
 				}
 			}
@@ -72,10 +72,10 @@ class SimpleEntry extends \GoogleSpreadsheet\API\Parser {
 			$entryItem['updated'],
 			$entryItem['name']
 		)) {
-			// if additional node save critera - ensure they were found for entry
+			// if additional element save critera - ensure they were found for entry
 			$saveEntryOK = true;
-			if ($this->additionalNodeSaveList) {
-				foreach ($this->additionalNodeSaveList as $entryKey) {
+			if ($this->additionalElementSaveList) {
+				foreach ($this->additionalElementSaveList as $entryKey) {
 					if (!isset($entryItem[$entryKey])) {
 						// not found - skip entry
 						$saveEntryOK = false;

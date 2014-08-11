@@ -12,34 +12,36 @@ class Parser {
 
 		// create new XML parser
 		$this->XMLParser = xml_parser_create();
-		$nodePathList = [];
-		$nodePath = '';
-		$elementData = '';
+		$elementPathList = [];
+		$elementPath = '';
+		$elementData = false;
 
 		// setup element start/end handlers
 		xml_set_element_handler(
 			$this->XMLParser,
 			function($parser,$name,array $attribList)
-				use ($elementStartHandler,&$nodePathList,&$nodePath,&$elementData) {
+				use ($elementStartHandler,&$elementPathList,&$elementPath,&$elementData) {
 
-				// update node path (level down)
-				$nodePathList[] = $name;
-				$nodePath = implode('/',$nodePathList);
-				$elementData = ''; // start tracking element data
+				// update element path (level down), start catching element data
+				$elementPathList[] = $name;
+				$elementPath = implode('/',$elementPathList);
+				$elementData = '';
 
-				// call $elementStartHandler with open node details
-				$elementStartHandler($name,$nodePath,$attribList);
+				// call $elementStartHandler with open element details
+				$elementStartHandler($name,$elementPath,$attribList);
 			},
 			function($parser,$name)
-				use ($dataHandler,&$nodePathList,&$nodePath,&$elementData) {
+				use ($dataHandler,&$elementPathList,&$elementPath,&$elementData) {
 
-				// call $dataHandler with node path and element data
-				$dataHandler($nodePath,$elementData);
-				$elementData = ''; // end tracking element data
+				if ($elementData !== false) {
+					// call $dataHandler with element path and data
+					$dataHandler($elementPath,$elementData);
+				}
 
-				// update node path (level up)
-				array_pop($nodePathList);
-				$nodePath = implode('/',$nodePathList);
+				// update element path (level up), stop catching element data
+				array_pop($elementPathList);
+				$elementPath = implode('/',$elementPathList);
+				$elementData = false;
 			}
 		);
 
@@ -48,9 +50,10 @@ class Parser {
 			$this->XMLParser,
 			function($parser,$data) use (&$elementData) {
 
-				// note: the function here will be called multiple times for a single node
-				// if linefeeds are found - so we batch up all these calls into a single string
-				$elementData .= $data;
+				// the function here can be called multiple times for a single open element if linefeeds are found
+				if ($elementData !== false) {
+					$elementData .= $data;
+				}
 			}
 		);
 	}
