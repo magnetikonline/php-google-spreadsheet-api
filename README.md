@@ -212,7 +212,7 @@ The provided [example](example.php) CLI script will perform the following tasks:
 
 Finally, run `example.php` to view the result.
 
-**Note:** If OAuth2 token details stored in `./.tokendata` require a refresh (due to expiry), the function handler set by the [`OAuth2\GoogleAPI->setTokenRefreshHandler()`](oauth2/googleapi.php#L36-L39) method will be called to allow the re-save of updated token data back to persistent storage.
+**Note:** If OAuth2 token details stored in `./.tokendata` require a refresh (due to expiry), the function handler set by [`OAuth2\GoogleAPI->setTokenRefreshHandler()`](oauth2/googleapi.php#L36-L39) will be called to allow the re-save of updated token data back to persistent storage.
 
 ## Issues
 The Google spreadsheet API documents suggest requests can [specify the API version](https://developers.google.com/google-apps/spreadsheets/#specifying_a_version). Attempts to do this cause the [cell based feed](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_cell-based_feed) response to avoid providing the cell version slug in `<link rel="edit">` nodes - making it impossible to issue an update of cell values. So for now, I have left out sending the API version HTTP header.
