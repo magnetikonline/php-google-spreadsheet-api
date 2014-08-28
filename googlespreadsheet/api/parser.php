@@ -8,7 +8,7 @@ class Parser {
 	private $XMLParsedChunk = false;
 
 
-	public function __construct($elementStartHandler,$dataHandler) {
+	public function __construct(callable $elementStartHandler,callable $dataHandler) {
 
 		// create new XML parser
 		$this->XMLParser = xml_parser_create();

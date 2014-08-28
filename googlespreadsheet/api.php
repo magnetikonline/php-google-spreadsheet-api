@@ -402,7 +402,7 @@ class API {
 
 	private function OAuth2Request(
 		$URL,
-		$readHandler = null,$writeHandler = null
+		callable $readHandler = null,callable $writeHandler = null
 	) {
 
 		$responseHTTPCode = false;

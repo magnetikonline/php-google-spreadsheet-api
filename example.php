@@ -42,7 +42,7 @@ class Example extends Base {
 		print_r($spreadsheetList);
 
 		if (!$spreadsheetList) {
-			echo("No spreadsheets found\n");
+			echo("Error: No spreadsheets found\n");
 			exit();
 		}
 

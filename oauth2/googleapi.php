@@ -33,7 +33,7 @@ class GoogleAPI extends Token {
 		$this->refreshToken = $refresh;
 	}
 
-	public function setTokenRefreshHandler($handler) {
+	public function setTokenRefreshHandler(callable $handler) {
 
 		$this->refreshTokenHandler = $handler;
 	}
