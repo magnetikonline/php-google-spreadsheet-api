@@ -3,8 +3,8 @@ PHP library allowing read/write access to existing Google Spreadsheets and their
 
 Since this API uses [OAuth2](http://oauth.net/2/) for client authentication a *very lite* (and somewhat incomplete) set of [classes for obtaining OAuth2 tokens](oauth2) is included.
 
-- [Requirements](#requirements)
-- Methods
+- [Requires](#requires)
+- [Methods](#methods)
 	- [API()](#api)
 	- [API()->getSpreadsheetList()](#api-getspreadsheetlist)
 	- [API()->getWorksheetList()](#api-getworksheetlist)
@@ -15,7 +15,7 @@ Since this API uses [OAuth2](http://oauth.net/2/) for client authentication a *v
 - [Issues](#issues)
 - [Links](#links)
 
-## Requirements
+## Requires
 - PHP 5.4 (uses [anonymous functions](http://php.net/manual/en/functions.anonymous.php) extensively).
 - [cURL](https://php.net/curl).
 - Expat [XML Parser](http://docs.php.net/manual/en/book.xml.php).
