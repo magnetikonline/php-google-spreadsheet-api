@@ -170,6 +170,8 @@ class API {
 				if (isset($cellRangeCriteriaList[$key])) {
 					if($key != "returnEmpty") {
 						$value = intval($value);
+					} else {
+						$value = ($value === TRUE) ? "true" : "false";
 					}
 					$cellRangeCriteriaQuerystringList[] = $mapTo . '=' . $value;
 				}
