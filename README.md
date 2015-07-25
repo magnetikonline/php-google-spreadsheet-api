@@ -12,6 +12,7 @@ Since this API uses [OAuth2](http://oauth.net/2/) for client authentication a *v
 	- [API()->getWorksheetCellList()](#api-getworksheetcelllist)
 	- [API()->updateWorksheetCellList()](#api-updateworksheetcelllist)
 - [Example](#example)
+	- [Setup](#setup)
 - [Issues](#issues)
 - [Links](#links)
 
@@ -133,7 +134,7 @@ $OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 // fetch first 20 rows from third column (C) to the end of the sheet
-// if no $cellRange is passed, all cells for a spreadsheet will be returned
+// if $cellRange is not passed then *all* cells for the spreadsheet will be returned
 $cellRange = [
 	'columnStart' => 3
 	'rowStart' => 1
