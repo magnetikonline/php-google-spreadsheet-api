@@ -1,5 +1,5 @@
 # Google Spreadsheets PHP API
-PHP library allowing read/write access to existing Google Spreadsheets and their data. Uses the [version 3 API](https://developers.google.com/google-apps/spreadsheets/), which is the latest at time of writing.
+PHP library allowing read/write access to existing Google Spreadsheets and their data. Uses the [version 3 API](https://developers.google.com/sheets/api/v3/), which is now on a deprecation path (as of February 2017) in favor of a version 4 API.
 
 Since this API uses [OAuth2](https://oauth.net/2/) for client authentication a *very lite* (and somewhat incomplete) set of [classes for obtaining OAuth2 tokens](oauth2) is included.
 
@@ -51,7 +51,7 @@ print_r(
 */
 ```
 
-[API reference](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_list_of_spreadsheets)
+[API reference](https://developers.google.com/sheets/api/v3/worksheets#retrieve_a_list_of_spreadsheets)
 
 ### API()->getWorksheetList()
 Returns a listing of defined worksheets for a specified spreadsheet key.
@@ -78,12 +78,12 @@ print_r(
 */
 ```
 
-[API reference](https://developers.google.com/google-apps/spreadsheets/#retrieving_information_about_worksheets)
+[API reference](https://developers.google.com/sheets/api/v3/worksheets#retrieve_information_about_worksheets)
 
 ### API()->getWorksheetDataList()
 Returns a read only 'list based feed' of data for a given spreadsheet key and worksheet ID.
 
-List based feeds have a specific format as defined by Google - see the [API reference](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_list-based_feed) for details. Data is returned as an array with two keys - defined headers and the data body.
+List based feeds have a specific format as defined by Google - see the [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_list-based_feed) for details. Data is returned as an array with two keys - defined headers and the data body.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
@@ -120,12 +120,12 @@ Array
 */
 ```
 
-[API reference](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_list-based_feed)
+[API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_list-based_feed)
 
 ### API()->getWorksheetCellList()
-Returns a listing of individual worksheet cells, for either the entire sheet or a specific row/column range - see example below for usage of row/column ranges.
+Returns a listing of individual worksheet cells, for either the entire sheet or a specific row/column range.
 
-Cells are returned as instances of [`GoogleSpreadsheet\CellItem()`](googlespreadsheet/cellitem.php) within an array list, indexed by their cell reference (e.g. "B1"). Cell instances can be modified and then passed into [`API()->updateWorksheetCellList()`](#api-updateworksheetcelllist) to update the source Google spreadsheet.
+Cells are returned as an array of [`GoogleSpreadsheet\CellItem()`](googlespreadsheet/cellitem.php) instances, indexed by cell reference (e.g. `B1`). Cell instances can be modified and then passed into [`API()->updateWorksheetCellList()`](#api-updateworksheetcelllist) to update source spreadsheet.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
@@ -166,10 +166,10 @@ Array
 */
 ```
 
-[API reference](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_cell-based_feed)
+[API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_cell-based_feed)
 
 ### API()->updateWorksheetCellList()
-Accepts and array list of one or more `GoogleSpreadsheet\CellItem()` instances and updates the target spreadsheet where cell values have been modified from their source value using the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
+Accepts array of one or more `GoogleSpreadsheet\CellItem()` instances and updates the target spreadsheet where cell values have been modified from their source value using the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
 
 Passed cell instances that have not been modified will be skipped by this method (no work to do).
 
@@ -187,7 +187,7 @@ $spreadsheetAPI->updateWorksheetCellList(
 );
 ```
 
-[API reference](https://developers.google.com/google-apps/spreadsheets/#updating_multiple_cells_with_a_batch_request)
+[API reference](https://developers.google.com/sheets/api/v3/data#update_multiple_cells_with_a_batch_request)
 
 ## Example
 The provided [`example.php`](example.php) CLI script will perform the following tasks:
@@ -219,7 +219,7 @@ Finally, run `example.php` to view the result.
 **Note:** If OAuth2 token details stored in `./.tokendata` require a refresh (due to expiry), the function handler set by [`OAuth2\GoogleAPI->setTokenRefreshHandler()`](oauth2/googleapi.php#L36-L39) will be called to allow the re-save of updated token data back to persistent storage.
 
 ## Known issues
-The Google spreadsheet API documents suggest requests can [specify the API version](https://developers.google.com/google-apps/spreadsheets/#specifying_a_version). Attempts to do this cause the [cell based feed](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_cell-based_feed) response to avoid providing the cell version slug in `<link rel="edit">` nodes - making it impossible to issue an update of cell values. So for now, I have left out sending the API version HTTP header.
+The Google spreadsheet API documents suggest requests can [specify the API version](https://developers.google.com/sheets/api/v3/authorize#specify_a_version). Attempts to do this cause the [cell based feed](https://developers.google.com/sheets/api/v3/data#retrieve_a_cell-based_feed) response to avoid providing the cell version slug in `<link rel="edit">` nodes - making it impossible to issue an update of cell values. So for now, I have left out sending the API version HTTP header.
 
 ## Reference
 - OAuth2
@@ -227,4 +227,4 @@ The Google spreadsheet API documents suggest requests can [specify the API versi
 	- https://developers.google.com/accounts/docs/OAuth2WebServer
 	- https://developers.google.com/oauthplayground/
 - Google Spreadsheets API version 3.0
-	- https://developers.google.com/google-apps/spreadsheets/
+	- https://developers.google.com/sheets/api/v3/
