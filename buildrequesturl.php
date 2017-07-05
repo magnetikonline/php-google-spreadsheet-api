@@ -15,7 +15,7 @@ class BuildRequestURL extends Base {
 				GoogleSpreadsheet\API::API_BASE_URL
 			]) .
 
-			"After successful authentication, make note of the value of 'code=' on the URL query string for next steps.\n"
+			"After successful authentication, make note of 'code=' query string value (minus trailing '#') for next steps.\n"
 		);
 	}
 

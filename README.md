@@ -1,7 +1,7 @@
 # Google Spreadsheets PHP API
 PHP library allowing read/write access to existing Google Spreadsheets and their data. Uses the [version 3 API](https://developers.google.com/google-apps/spreadsheets/), which is the latest at time of writing.
 
-Since this API uses [OAuth2](http://oauth.net/2/) for client authentication a *very lite* (and somewhat incomplete) set of [classes for obtaining OAuth2 tokens](oauth2) is included.
+Since this API uses [OAuth2](https://oauth.net/2/) for client authentication a *very lite* (and somewhat incomplete) set of [classes for obtaining OAuth2 tokens](oauth2) is included.
 
 - [Requires](#requires)
 - [Methods](#methods)
@@ -13,8 +13,8 @@ Since this API uses [OAuth2](http://oauth.net/2/) for client authentication a *v
 	- [API()->updateWorksheetCellList()](#api-updateworksheetcelllist)
 - [Example](#example)
 	- [Setup](#setup)
-- [Issues](#issues)
-- [Links](#links)
+- [Known issues](#known-issues)
+- [Reference](#reference)
 
 ## Requires
 - PHP 5.4 (uses [anonymous functions](http://php.net/manual/en/functions.anonymous.php) extensively).
@@ -34,7 +34,7 @@ Returns a listing of available spreadsheets for the requesting client.
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
 $OAuth2GoogleAPI->setTokenData(/* Token data */);
-$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 print_r(
@@ -59,7 +59,7 @@ Returns a listing of defined worksheets for a specified spreadsheet key.
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
 $OAuth2GoogleAPI->setTokenData(/* Token data */);
-$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 print_r(
@@ -88,7 +88,7 @@ List based feeds have a specific format as defined by Google - see the [API refe
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
 $OAuth2GoogleAPI->setTokenData(/* Token data */);
-$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 print_r(
@@ -130,7 +130,7 @@ Cells are returned as instances of [`GoogleSpreadsheet\CellItem()`](googlespread
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
 $OAuth2GoogleAPI->setTokenData(/* Token data */);
-$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 // fetch first 20 rows from third column (C) to the end of the sheet
@@ -176,7 +176,7 @@ Passed cell instances that have not been modified will be skipped by this method
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
 $OAuth2GoogleAPI->setTokenData(/* Token data */);
-$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler function */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 $cellList = $spreadsheetAPI->getWorksheetCellList('SPREADSHEET_KEY','WORKSHEET_ID');
@@ -190,7 +190,7 @@ $spreadsheetAPI->updateWorksheetCellList(
 [API reference](https://developers.google.com/google-apps/spreadsheets/#updating_multiple_cells_with_a_batch_request)
 
 ## Example
-The provided [example](example.php) CLI script will perform the following tasks:
+The provided [`example.php`](example.php) CLI script will perform the following tasks:
 - Fetch all available spreadsheets for the requesting client and display.
 - For the first spreadsheet found, fetch all worksheets and display.
 - Fetch a data listing of the first worksheet.
@@ -198,16 +198,19 @@ The provided [example](example.php) CLI script will perform the following tasks:
 - Finally, modify the content of the first cell fetched (commented out in example).
 
 ### Setup
-- Create a new project API at https://console.developers.google.com/.
-	- Generate a new set of OAuth2 client tokens under the **APIs & Auth -> Credentials** section:
-		- Click **Create new Client ID**.
-		- Select **Web application** as the **Application type** (default).
-		- Enter an **Authorized redirect URI** - this *does not* need to be a real live URI for the example.
-		- Under the **Client ID for web application** section, note down generated **client ID** and **client secret** values.
-- Modify [`config.php`](config.php) entering `redirect`, `clientID` and `clientSecret` as generated above.
-- Execute [`buildrequesturl.php`](buildrequesturl.php) and enter generated URL into a new browser window.
-- After accepting terms you will be taken back to the entered redirect URI along with a `?code=` querystring value.
-- Execute [`exchangecodefortokens.php`](exchangecodefortokens.php), providing `code` from the previous step.
+- Create a new project at: https://console.developers.google.com/projectcreate.
+- Generate set of OAuth2 tokens via `API Manager -> Credentials`:
+	- Click `Create credentials` drop down.
+	- Select `OAuth client ID` then `Web application`.
+	- Enter friendly name for client ID.
+	- Enter an `Authorized redirect URI` - this *does not* need to be a real URI for the example.
+	- Note down both generated `client ID` and `client secret` values.
+- Modify [`config.php`](config.php) entering `redirect` URI, `clientID` and `clientSecret` values generated above.
+- Visit the [Allow Risky Access Permissions By Unreviewed Apps](https://groups.google.com/forum/#!forum/risky-access-by-unreviewed-apps) Google group and `Join group` using your Google account.
+	- **Note:** For long term access it would be recommended to submit a "OAuth Developer Verification" request to Google.
+- Execute [`buildrequesturl.php`](buildrequesturl.php) and visit generated URL in a browser.
+- After accepting access terms and taken back to redirect URI, note down the `?code=` query string value (minus the trailing `#` character).
+- Execute [`exchangecodefortokens.php`](exchangecodefortokens.php), providing `code` from the previous step. This step should be called within a short time window before `code` expires.
 - Received OAuth2 token credentials will be saved to `./.tokendata`.
 	- **Note:** In a production application this sensitive information should be saved in a secure form to datastore/database/etc.
 
@@ -215,12 +218,12 @@ Finally, run `example.php` to view the result.
 
 **Note:** If OAuth2 token details stored in `./.tokendata` require a refresh (due to expiry), the function handler set by [`OAuth2\GoogleAPI->setTokenRefreshHandler()`](oauth2/googleapi.php#L36-L39) will be called to allow the re-save of updated token data back to persistent storage.
 
-## Issues
+## Known issues
 The Google spreadsheet API documents suggest requests can [specify the API version](https://developers.google.com/google-apps/spreadsheets/#specifying_a_version). Attempts to do this cause the [cell based feed](https://developers.google.com/google-apps/spreadsheets/#retrieving_a_cell-based_feed) response to avoid providing the cell version slug in `<link rel="edit">` nodes - making it impossible to issue an update of cell values. So for now, I have left out sending the API version HTTP header.
 
-## Links
+## Reference
 - OAuth2
-	- http://tools.ietf.org/html/rfc6749
+	- https://tools.ietf.org/html/rfc6749
 	- https://developers.google.com/accounts/docs/OAuth2WebServer
 	- https://developers.google.com/oauthplayground/
 - Google Spreadsheets API version 3.0

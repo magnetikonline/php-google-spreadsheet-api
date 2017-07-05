@@ -43,7 +43,7 @@ class ExchangeCodeForTokens extends Base {
 		// attempt to get code from CLI
 		if (!($optList = getopt('c:'))) {
 			// no -c switch or switch without value
-			echo(sprintf("Usage: %s -c AUTHORIZATION CODE\n",basename(__FILE__)));
+			echo(sprintf("Usage: %s -c AUTHORIZATION_CODE\n",basename(__FILE__)));
 			return false;
 		}
 
