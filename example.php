@@ -37,7 +37,7 @@ class Example extends Base {
 
 		$spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
-		// fetch all spreadsheets and display
+		// fetch all available spreadsheets and display
 		$spreadsheetList = $spreadsheetAPI->getSpreadsheetList();
 		print_r($spreadsheetList);
 
@@ -53,7 +53,7 @@ class Example extends Base {
 		$worksheetList = $spreadsheetAPI->getWorksheetList($spreadsheetKey);
 		print_r($worksheetList);
 
-		// fetch ID of first worksheet
+		// fetch ID of first worksheet from list
 		$worksheetID = array_keys($worksheetList)[0];
 
 		// fetch worksheet data list and display

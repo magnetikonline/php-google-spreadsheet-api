@@ -10,7 +10,9 @@ class ExchangeCodeForTokens extends Base {
 	public function execute() {
 
 		// get code from CLI parameter - exit if false (bad/no data)
-		if (($authCode = $this->getAuthCodeFromCLI()) === false) return;
+		if (($authCode = $this->getAuthCodeFromCLI()) === false) {
+			return;
+		}
 
 		$OAuth2GoogleAPI = $this->getOAuth2GoogleAPIInstance();
 
@@ -50,7 +52,7 @@ class ExchangeCodeForTokens extends Base {
 		// validate authorization code format
 		$authCode = $optList['c'];
 		if (!preg_match('/^[0-9A-Za-z._\/-]{30,62}$/',$authCode)) {
-			echo("Error: invalid Google authorization code format\n\n");
+			echo("Error: invalid authorization code format\n\n");
 			return false;
 		}
 

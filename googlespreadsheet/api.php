@@ -331,10 +331,11 @@ class API {
 				}
 
 				// find next cell update to send
+				$cellItem = false;
 				while ($worksheetCellList) {
 					$cellItem = array_shift($worksheetCellList);
 					if ($cellItem->isDirty()) {
-						// cell to be updated
+						// found cell to be updated
 						break;
 					}
 
@@ -342,7 +343,7 @@ class API {
 				}
 
 				if ($cellItem === false) {
-					// no more cells - send XML </feed> tail
+					// no more cells - send </feed> tail
 					$finalCellSent = true;
 					return '</feed>';
 				}
@@ -402,7 +403,8 @@ class API {
 
 	private function OAuth2Request(
 		$URL,
-		callable $readHandler = null,callable $writeHandler = null
+		callable $readHandler = null,
+		callable $writeHandler = null
 	) {
 
 		$responseHTTPCode = false;

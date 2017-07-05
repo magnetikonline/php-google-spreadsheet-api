@@ -8,15 +8,15 @@ class BuildRequestURL extends Base {
 
 	public function execute() {
 
-		echo(
-			"Visit the following URL in a browser to authenticate your Google account against the OAuth2 API:\n\n" .
-
+		echo(sprintf(
+			"Visit the following URL in a browser to authenticate your " .
+			"Google account against the OAuth2 API:\n\n%s" .
+			"After successful authentication, make note of 'code=' " .
+			"query string value (minus trailing '#') for next steps.\n",
 			$this->buildURL([
 				GoogleSpreadsheet\API::API_BASE_URL
-			]) .
-
-			"After successful authentication, make note of 'code=' query string value (minus trailing '#') for next steps.\n"
-		);
+			])
+		));
 	}
 
 	private function buildURL(array $scopeList) {
@@ -24,7 +24,9 @@ class BuildRequestURL extends Base {
 		$OAuth2URLList = $this->config['OAuth2URL'];
 
 		// ensure all scopes have trailing forward slash
-		foreach ($scopeList as &$scopeItem) $scopeItem = rtrim($scopeItem,'/') . '/';
+		foreach ($scopeList as &$scopeItem) {
+			$scopeItem = rtrim($scopeItem,'/') . '/';
+		}
 
 		$buildQuerystring = function(array $list) {
 

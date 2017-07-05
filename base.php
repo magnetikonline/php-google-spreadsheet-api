@@ -14,7 +14,7 @@ abstract class Base {
 		$OAuth2URLList = $this->config['OAuth2URL'];
 
 		return new OAuth2\GoogleAPI(
-			$OAuth2URLList['base'] . '/' . $OAuth2URLList['token'],
+			sprintf('%s/%s',$OAuth2URLList['base'],$OAuth2URLList['token']),
 			$OAuth2URLList['redirect'],
 			$this->config['clientID'],
 			$this->config['clientSecret']
