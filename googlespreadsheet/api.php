@@ -155,7 +155,8 @@ class API {
 				'columnEnd' => 'max-col',
 				'columnStart' => 'min-col',
 				'rowEnd' => 'max-row',
-				'rowStart' => 'min-row'
+				'rowStart' => 'min-row',
+				'returnEmpty' => 'return-empty'
 			];
 
 			// ensure all given keys are valid
@@ -167,7 +168,12 @@ class API {
 			// all valid, build querystring
 			foreach ($rangeCriteriaMapList as $key => $mapTo) {
 				if (isset($cellRangeCriteriaList[$key])) {
-					$cellRangeCriteriaQuerystringList[] = $mapTo . '=' . intval($cellRangeCriteriaList[$key]);
+					if($key != "returnEmpty") {
+						$value = intval($value);
+					} else {
+						$value = ($value === TRUE) ? "true" : "false";
+					}
+					$cellRangeCriteriaQuerystringList[] = $mapTo . '=' . $value;
 				}
 			}
 		}
