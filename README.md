@@ -123,9 +123,10 @@ Array
 [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_list-based_feed)
 
 ### API()->getWorksheetCellList()
-Returns a listing of individual worksheet cells, for either the entire sheet or a specific row/column range.
-
-Cells are returned as an array of [`GoogleSpreadsheet\CellItem()`](googlespreadsheet/cellitem.php) instances, indexed by cell reference (e.g. `B1`). Cell instances can be modified and then passed into [`API()->updateWorksheetCellList()`](#api-updateworksheetcelllist) to update source spreadsheet.
+Returns a listing of individual worksheet cells for an entire sheet, or a specific range.
+- Cells returned as an array of [`GoogleSpreadsheet\CellItem()`](googlespreadsheet/cellitem.php) instances, indexed by cell reference (e.g. `B1`).
+- Cell instances can be modified and then passed into [`API()->updateWorksheetCellList()`](#api-updateworksheetcelllist) to update source spreadsheet.
+- An optional `returnEmpty` criteria option boolean determines if API will return empty cell items.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
@@ -134,8 +135,9 @@ $OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
 $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 // fetch first 20 rows from third column (C) to the end of the sheet
-// if $cellRange is not passed then *all* cells for the spreadsheet will be returned
-$cellRange = [
+// if $cellCriteria not passed then *all* cells for the spreadsheet will be returned
+$cellCriteria = [
+	'returnEmpty' = true,
 	'columnStart' => 3
 	'rowStart' => 1
 	'rowEnd' => 20
@@ -144,7 +146,7 @@ $cellRange = [
 print_r(
 	$spreadsheetAPI->getWorksheetCellList(
 		'SPREADSHEET_KEY','WORKSHEET_ID',
-		$cellRange
+		$cellCriteria
 	)
 );
 
@@ -169,9 +171,9 @@ Array
 [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_cell-based_feed)
 
 ### API()->updateWorksheetCellList()
-Accepts array of one or more `GoogleSpreadsheet\CellItem()` instances and updates the target spreadsheet where cell values have been modified from their source value using the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
+Accepts array of `GoogleSpreadsheet\CellItem()` instances, updating target spreadsheet where cell values have been modified from source via the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
 
-Passed cell instances that have not been modified will be skipped by this method (no work to do).
+Given cell instances that _have not_ been modified are skipped (no work to do).
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);

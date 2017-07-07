@@ -12,6 +12,14 @@ class API {
 	// note: not using this HTTP header in requests - causes issue with getWorksheetCellList() method (cell versions not returned in XML)
 	const API_VERSION_HTTP_HEADER = 'GData-Version: 3.0';
 
+	private $RANGE_CRITERIA_MAP_COLLECTION = [
+		'columnEnd' => 'max-col',
+		'columnStart' => 'min-col',
+		'returnEmpty' => 'return-empty',
+		'rowEnd' => 'max-row',
+		'rowStart' => 'min-row'
+	];
+
 	private $OAuth2GoogleAPI;
 
 
@@ -146,28 +154,27 @@ class API {
 		];
 	}
 
-	public function getWorksheetCellList($spreadsheetKey,$worksheetID,array $cellRangeCriteriaList = []) {
+	public function getWorksheetCellList($spreadsheetKey,$worksheetID,array $cellCriteriaList = []) {
 
 		// build cell fetch range criteria for URL if given
 		$cellRangeCriteriaQuerystringList = [];
-		if ($cellRangeCriteriaList) {
-			$rangeCriteriaMapList = [
-				'columnEnd' => 'max-col',
-				'columnStart' => 'min-col',
-				'rowEnd' => 'max-row',
-				'rowStart' => 'min-row'
-			];
-
+		if ($cellCriteriaList) {
 			// ensure all given keys are valid
-			if ($invalidCriteriaList = array_diff(array_keys($cellRangeCriteriaList),array_keys($rangeCriteriaMapList))) {
+			if ($invalidCriteriaList = array_diff(
+				array_keys($cellCriteriaList),
+				array_keys($this->RANGE_CRITERIA_MAP_COLLECTION)
+			)) {
 				// invalid keys found
-				throw new \Exception('Invalid cell range criteria [' . implode(',',$invalidCriteriaList) . ']');
+				throw new \Exception('Invalid cell range criteria key(s) [' . implode(',',$invalidCriteriaList) . ']');
 			}
 
 			// all valid, build querystring
-			foreach ($rangeCriteriaMapList as $key => $mapTo) {
-				if (isset($cellRangeCriteriaList[$key])) {
-					$cellRangeCriteriaQuerystringList[] = $mapTo . '=' . intval($cellRangeCriteriaList[$key]);
+			foreach ($this->RANGE_CRITERIA_MAP_COLLECTION as $key => $mapTo) {
+				if (isset($cellCriteriaList[$key])) {
+					$value = $cellCriteriaList[$key];
+					$cellRangeCriteriaQuerystringList[] = ($key == 'returnEmpty')
+						? sprintf('%s=%s',$mapTo,($value) ? 'true' : 'false')
+						: sprintf('%s=%d',$mapTo,$value);
 				}
 			}
 		}
@@ -220,7 +227,7 @@ class API {
 
 				switch ($elementPath) {
 					case 'FEED/ENTRY/TITLE':
-						$cellItemData['ref'] = $data; // cell reference (e.g. "B1")
+						$cellItemData['ref'] = $data; // cell reference (e.g. 'B1')
 						break;
 
 					case 'FEED/ENTRY/CONTENT':
@@ -245,7 +252,7 @@ class API {
 			function($data) use ($parser) { $parser->process($data); }
 		);
 
-		// end of XML parse - add final parsed cell item
+		// end of XML parse - add final cell item
 		$parser->close();
 		$addCellItem($cellItemData);
 
@@ -254,7 +261,7 @@ class API {
 			'Unable to retrieve worksheet cell listing'
 		);
 
-		// return worksheet cell list
+		// return cell list
 		return $worksheetCellList;
 	}
 
@@ -417,6 +424,7 @@ class API {
 			CURLOPT_HTTPHEADER => [
 				'Accept: ',
 				'Expect: ', // added by CURLOPT_READFUNCTION
+
 				// Google OAuth2 credentials
 				implode(': ',$this->OAuth2GoogleAPI->getAuthHTTPHeader())
 			],
