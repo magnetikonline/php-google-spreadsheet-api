@@ -285,13 +285,13 @@ class API {
 		$cellIDCounter = -1;
 		$excessBuffer = false;
 		$finalCellSent = false;
-		$splitBuffer = function($bytesReadMax,$buffer) {
+		$splitBuffer = function($bytesWriteMax,$buffer) {
 
-			if (strlen($buffer) > $bytesReadMax) {
-				// split buffer to maximum read bytes and remainder
+			if (strlen($buffer) > $bytesWriteMax) {
+				// split buffer to maximum write bytes allowed and remainder
 				return [
-					substr($buffer,0,$bytesReadMax),
-					substr($buffer,$bytesReadMax)
+					substr($buffer,0,$bytesWriteMax),
+					substr($buffer,$bytesWriteMax)
 				];
 			}
 
@@ -306,21 +306,21 @@ class API {
 				$spreadsheetKey,
 				$worksheetID
 			),
-			function($bytesReadMax)
+			function($bytesWriteMax)
 				use (
 					$spreadsheetKey,$worksheetID,
 					&$worksheetCellList,&$cellIDCounter,&$excessBuffer,&$finalCellSent,$splitBuffer
 				) {
 
 				if ($finalCellSent) {
-					// end of read buffer
+					// end of write buffer
 					return '';
 				}
 
 				if ($excessBuffer !== false) {
-					// send more of read buffer from previous callback run
-					list($readBuffer,$excessBuffer) = $splitBuffer($bytesReadMax,$excessBuffer);
-					return $readBuffer;
+					// send more of write buffer from previous callback run
+					list($writeBuffer,$excessBuffer) = $splitBuffer($bytesWriteMax,$excessBuffer);
+					return $writeBuffer;
 				}
 
 				if ($cellIDCounter < 0) {
@@ -356,16 +356,16 @@ class API {
 				}
 
 				$cellIDCounter++;
-				list($readBuffer,$excessBuffer) = $splitBuffer(
-					$bytesReadMax,
+				list($writeBuffer,$excessBuffer) = $splitBuffer(
+					$bytesWriteMax,
 					$this->updateWorksheetCellListBuildBatchUpdateEntry(
 						$spreadsheetKey,$worksheetID,
 						$cellIDCounter,$cellItem
 					)
 				);
 
-				// send read buffer
-				return $readBuffer;
+				// send write buffer
+				return $writeBuffer;
 			}
 		);
 
@@ -410,8 +410,8 @@ class API {
 
 	private function OAuth2Request(
 		$URL,
-		callable $readHandler = null,
-		callable $writeHandler = null
+		callable $writeHandler = null,
+		callable $readHandler = null
 	) {
 
 		$responseHTTPCode = false;
@@ -428,30 +428,30 @@ class API {
 				// Google OAuth2 credentials
 				implode(': ',$this->OAuth2GoogleAPI->getAuthHTTPHeader())
 			],
-			CURLOPT_RETURNTRANSFER => ($writeHandler === null), // only return response from curl_exec() if no $writeHandler given
+			CURLOPT_RETURNTRANSFER => ($readHandler === null), // only return response from curl_exec() directly if no $readHandler given
 			CURLOPT_URL => $URL
 		];
 
-		// add optional read and/or write data handlers
-		if ($readHandler !== null) {
-			// POST data with XML content type if using a read handler
+		// add optional write/read data handlers
+		if ($writeHandler !== null) {
+			// POST data with XML content type if using a write handler
 			$optionList += [
 				CURLOPT_CUSTOMREQUEST => 'POST',
 				CURLOPT_PUT => true, // required to enable CURLOPT_READFUNCTION
 				CURLOPT_READFUNCTION =>
 					// don't need curl instance/stream resource - so proxy handler in closure to remove
-					function($curlConn,$stream,$bytesReadMax) use ($readHandler) {
-						return $readHandler($bytesReadMax);
+					function($curlConn,$stream,$bytesWriteMax) use ($writeHandler) {
+						return $writeHandler($bytesWriteMax);
 					}
 			];
 
 			$optionList[CURLOPT_HTTPHEADER][] = 'Content-Type: ' . self::CONTENT_TYPE_ATOMXML;
 		}
 
-		if ($writeHandler !== null) {
+		if ($readHandler !== null) {
 			$optionList[CURLOPT_WRITEFUNCTION] =
 				// proxy so we can capture HTTP response code before using given write handler
-				function($curlConn,$data) use ($writeHandler,&$responseHTTPCode,&$responseBody) {
+				function($curlConn,$data) use ($readHandler,&$responseHTTPCode,&$responseBody) {
 
 					// fetch HTTP response code if not known yet
 					if ($responseHTTPCode === false) {
@@ -460,14 +460,14 @@ class API {
 
 					if ($responseHTTPCode == self::HTTP_CODE_OK) {
 						// call handler
-						$writeHandler($data);
+						$readHandler($data);
 
 					} else {
 						// bad response - put all response data into $responseBody
 						$responseBody .= $data;
 					}
 
-					// return byte count processed (all of it)
+					// return the byte count/size processed back to curl
 					return strlen($data);
 				};
 		}
@@ -490,7 +490,7 @@ class API {
 		// return HTTP code and response body
 		return [
 			$responseHTTPCode,
-			($writeHandler === null) ? $curlExecReturn : $responseBody
+			($readHandler === null) ? $curlExecReturn : $responseBody
 		];
 	}
 
