@@ -7,11 +7,11 @@ Since this API uses [OAuth2](https://oauth.net/2/) for client authentication a *
 - [Methods](#methods)
 	- [API()](#api)
 	- [API()->getSpreadsheetList()](#api-getspreadsheetlist)
-	- [API()->getWorksheetList()](#api-getworksheetlist)
-	- [API()->getWorksheetDataList()](#api-getworksheetdatalist)
-	- [API()->getWorksheetCellList()](#api-getworksheetcelllist)
-	- [API()->updateWorksheetCellList()](#api-updateworksheetcelllist)
-	- [API()->addWorksheetDataRow()](#api-addworksheetdatarow)
+	- [API()->getWorksheetList($spreadsheetKey)](#api-getworksheetlistspreadsheetkey)
+	- [API()->getWorksheetDataList($spreadsheetKey,$worksheetID)](#api-getworksheetdatalistspreadsheetkeyworksheetid)
+	- [API()->getWorksheetCellList($spreadsheetKey,$worksheetID[,$cellCriteriaList])](#api-getworksheetcelllistspreadsheetkeyworksheetidcellcriterialist)
+	- [API()->updateWorksheetCellList($spreadsheetKey,$worksheetID,$worksheetCellList)](#api-updateworksheetcelllistspreadsheetkeyworksheetidworksheetcelllist)
+	- [API()->addWorksheetDataRow($spreadsheetKey,$worksheetID,$rowDataList)](#api-addworksheetdatarowspreadsheetkeyworksheetidrowdatalist)
 - [Example](#example)
 	- [Setup](#setup)
 - [Known issues](#known-issues)
@@ -54,8 +54,8 @@ print_r(
 
 [API reference](https://developers.google.com/sheets/api/v3/worksheets#retrieve_a_list_of_spreadsheets)
 
-### API()->getWorksheetList()
-Returns a listing of defined worksheets for a specified spreadsheet key.
+### API()->getWorksheetList($spreadsheetKey)
+Returns a listing of defined worksheets for a given `$spreadsheetKey`.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
@@ -81,8 +81,8 @@ print_r(
 
 [API reference](https://developers.google.com/sheets/api/v3/worksheets#retrieve_information_about_worksheets)
 
-### API()->getWorksheetDataList()
-Returns a read only 'list based feed' of data for a given spreadsheet key and worksheet ID.
+### API()->getWorksheetDataList($spreadsheetKey,$worksheetID)
+Returns a read only 'list based feed' of data for a given `$spreadsheetKey` and `$worksheetID`.
 
 List based feeds have a specific format as defined by Google - see the [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_list-based_feed) for details. Data is returned as an array with two keys - defined headers and the data body.
 
@@ -123,11 +123,12 @@ Array
 
 [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_list-based_feed)
 
-### API()->getWorksheetCellList()
-Returns a listing of individual worksheet cells for an entire sheet, or a specific range.
+### API()->getWorksheetCellList($spreadsheetKey,$worksheetID[,$cellCriteriaList])
+Returns a listing of individual worksheet cells for an entire sheet, or a specific range (via `$cellCriteriaList`) for a given `$spreadsheetKey` and `$worksheetID`.
+
 - Cells returned as an array of [`GoogleSpreadsheet\CellItem()`](googlespreadsheet/cellitem.php) instances, indexed by cell reference (e.g. `B1`).
 - Cell instances can be modified and then passed into [`API()->updateWorksheetCellList()`](#api-updateworksheetcelllist) to update source spreadsheet.
-- An optional `returnEmpty` criteria option boolean determines if API will return empty cell items.
+- An optional `$cellCriteriaList` boolean option of `returnEmpty` determines if method will return empty cell items.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
@@ -171,8 +172,8 @@ Array
 
 [API reference](https://developers.google.com/sheets/api/v3/data#retrieve_a_cell-based_feed)
 
-### API()->updateWorksheetCellList()
-Accepts array of `GoogleSpreadsheet\CellItem()` instances, updating target spreadsheet where cell values have been modified from source via the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
+### API()->updateWorksheetCellList($spreadsheetKey,$worksheetID,$worksheetCellList)
+Accepts an array of `GoogleSpreadsheet\CellItem()` instances as `$worksheetCellList` for a given `$spreadsheetKey` and `$worksheetID`, updating target spreadsheet where cell values have been modified from source via the [`GoogleSpreadsheet\CellItem()->setValue()`](googlespreadsheet/cellitem.php#L62-L65) method.
 
 Given cell instances that _have not_ been modified are skipped (no work to do).
 
@@ -193,10 +194,10 @@ $spreadsheetAPI->updateWorksheetCellList(
 
 [API reference](https://developers.google.com/sheets/api/v3/data#update_multiple_cells_with_a_batch_request)
 
-### API()->addWorksheetDataRow()
+### API()->addWorksheetDataRow($spreadsheetKey,$worksheetID,$rowDataList)
 Add a new data row to an existing worksheet, directly after the last row. The last row is considered the final containing any non-empty cells.
 
-Accepts a single row for insert at the bottom as an array, where each array key matches a row header.
+Accepts a single row for insert at the bottom as an array via `$rowDataList`, where each array key matches a row header.
 
 ```php
 $OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
