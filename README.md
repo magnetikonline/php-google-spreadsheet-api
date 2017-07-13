@@ -11,6 +11,7 @@ Since this API uses [OAuth2](https://oauth.net/2/) for client authentication a *
 	- [API()->getWorksheetDataList()](#api-getworksheetdatalist)
 	- [API()->getWorksheetCellList()](#api-getworksheetcelllist)
 	- [API()->updateWorksheetCellList()](#api-updateworksheetcelllist)
+	- [API()->addWorksheetDataRow()](#api-addworksheetdatarow)
 - [Example](#example)
 	- [Setup](#setup)
 - [Known issues](#known-issues)
@@ -183,6 +184,7 @@ $spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
 
 $cellList = $spreadsheetAPI->getWorksheetCellList('SPREADSHEET_KEY','WORKSHEET_ID');
 $cellList['CELL_REFERENCE']->setValue('My updated value');
+
 $spreadsheetAPI->updateWorksheetCellList(
 	'SPREADSHEET_KEY','WORKSHEET_ID',
 	$cellList
@@ -190,6 +192,48 @@ $spreadsheetAPI->updateWorksheetCellList(
 ```
 
 [API reference](https://developers.google.com/sheets/api/v3/data#update_multiple_cells_with_a_batch_request)
+
+### API()->addWorksheetDataRow()
+Add a new data row to an existing worksheet, directly after the last row. The last row is considered the final containing any non-empty cells.
+
+Accepts a single row for insert at the bottom as an array, where each array key matches a row header.
+
+```php
+$OAuth2GoogleAPI = new OAuth2\GoogleAPI(/* URLs and client identifiers */);
+$OAuth2GoogleAPI->setTokenData(/* Token data */);
+$OAuth2GoogleAPI->setTokenRefreshHandler(/* Token refresh handler callback */);
+$spreadsheetAPI = new GoogleSpreadsheet\API($OAuth2GoogleAPI);
+
+$dataList = $spreadsheetAPI->getWorksheetDataList($spreadsheetKey,$worksheetID);
+print_r($dataList);
+
+/*
+Array
+(
+	[headerList] => Array
+		(
+			[0] => firstname
+			[1] => lastname
+			[2] => jobtitle
+			[3] => emailaddress
+		)
+
+	[dataList] => Array
+		(
+			... existing data ...
+		)
+)
+*/
+
+$spreadsheetAPI->addWorksheetDataRow($spreadsheetKey,$worksheetID,[
+	'firstname' => 'Bob',
+	'lastname' => 'Jones',
+	'jobtitle' => 'UX developer',
+	'emailaddress' => 'bob.jones@domain.com'
+]);
+```
+
+[API reference](https://developers.google.com/sheets/api/v3/data#add_a_list_row)
 
 ## Example
 The provided [`example.php`](example.php) CLI script will perform the following tasks:

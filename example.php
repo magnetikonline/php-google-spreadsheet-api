@@ -86,6 +86,18 @@ class Example extends Base {
 			$cellList
 		);
 		*/
+
+		// add data row to worksheet
+		/*
+		$dataList = $spreadsheetAPI->getWorksheetDataList($spreadsheetKey,$worksheetID);
+
+		$rowData = [];
+		foreach ($dataList['headerList'] as $index => $headerName) {
+			$rowData[$headerName] = 'column: ' . $index;
+		}
+
+		$spreadsheetAPI->addWorksheetDataRow($spreadsheetKey,$worksheetID,$rowData);
+		*/
 	}
 
 	private function loadOAuth2TokenData() {

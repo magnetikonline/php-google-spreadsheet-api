@@ -5,10 +5,15 @@ namespace GoogleSpreadsheet;
 class API {
 
 	const HTTP_CODE_OK = 200;
+	const HTTP_CODE_CREATED = 201;
+
 	const CURL_BUFFER_SIZE = 16384;
 
 	const CONTENT_TYPE_ATOMXML = 'application/atom+xml';
+	const XMLNS_ATOM = 'http://www.w3.org/2005/Atom';
+	const XMLNS_GOOGLE_SPREADSHEET = 'http://schemas.google.com/spreadsheets/2006';
 	const API_BASE_URL = 'https://spreadsheets.google.com/feeds';
+
 	// note: not using this HTTP header in requests - causes issue with getWorksheetCellList() method (cell versions not returned in XML)
 	const API_VERSION_HTTP_HEADER = 'GData-Version: 3.0';
 
@@ -147,7 +152,7 @@ class API {
 			'Unable to retrieve worksheet data listing'
 		);
 
-		// return worksheet headers and data list
+		// return header and data lists
 		return [
 			'headerList' => array_keys($worksheetHeaderList),
 			'dataList' => $worksheetDataList
@@ -282,22 +287,9 @@ class API {
 		}
 
 		// make request
-		$cellIDCounter = -1;
+		$cellIDIndex = -1;
 		$excessBuffer = false;
 		$finalCellSent = false;
-		$splitBuffer = function($bytesWriteMax,$buffer) {
-
-			if (strlen($buffer) > $bytesWriteMax) {
-				// split buffer to maximum write bytes allowed and remainder
-				return [
-					substr($buffer,0,$bytesWriteMax),
-					substr($buffer,$bytesWriteMax)
-				];
-			}
-
-			// can send the full buffer at once
-			return [$buffer,false];
-		};
 
 		list($responseHTTPCode,$responseBody) = $this->OAuth2Request(
 			sprintf(
@@ -309,29 +301,31 @@ class API {
 			function($bytesWriteMax)
 				use (
 					$spreadsheetKey,$worksheetID,
-					&$worksheetCellList,&$cellIDCounter,&$excessBuffer,&$finalCellSent,$splitBuffer
+					&$worksheetCellList,&$cellIDIndex,&$excessBuffer,&$finalCellSent
 				) {
 
 				if ($finalCellSent) {
-					// end of write buffer
+					// end of data
 					return '';
 				}
 
 				if ($excessBuffer !== false) {
-					// send more of write buffer from previous callback run
-					list($writeBuffer,$excessBuffer) = $splitBuffer($bytesWriteMax,$excessBuffer);
+					// send more buffer from previous run
+					list($writeBuffer,$excessBuffer) = $this->splitBuffer($bytesWriteMax,$excessBuffer);
 					return $writeBuffer;
 				}
 
-				if ($cellIDCounter < 0) {
+				if ($cellIDIndex < 0) {
 					// emit XML header
-					$cellIDCounter++;
+					$cellIDIndex = 0;
 
 					return sprintf(
-						'<feed xmlns="http://www.w3.org/2005/Atom" ' .
+						'<feed xmlns="%s" ' .
 							'xmlns:batch="http://schemas.google.com/gdata/batch" ' .
-							'xmlns:gs="http://schemas.google.com/spreadsheets/2006">' .
+							'xmlns:gs="%s">' .
 						'<id>%s/cells/%s/%s/private/full</id>',
+						self::XMLNS_ATOM,
+						self::XMLNS_GOOGLE_SPREADSHEET,
 						self::API_BASE_URL,
 						$spreadsheetKey,$worksheetID
 					);
@@ -350,17 +344,17 @@ class API {
 				}
 
 				if ($cellItem === false) {
-					// no more cells - send </feed> tail
+					// no more cells
 					$finalCellSent = true;
 					return '</feed>';
 				}
 
-				$cellIDCounter++;
-				list($writeBuffer,$excessBuffer) = $splitBuffer(
+				$cellIDIndex++;
+				list($writeBuffer,$excessBuffer) = $this->splitBuffer(
 					$bytesWriteMax,
 					$this->updateWorksheetCellListBuildBatchUpdateEntry(
 						$spreadsheetKey,$worksheetID,
-						$cellIDCounter,$cellItem
+						$cellIDIndex,$cellItem
 					)
 				);
 
@@ -376,6 +370,78 @@ class API {
 
 		// all done
 		return true;
+	}
+
+	public function addWorksheetDataRow($spreadsheetKey,$worksheetID,array $rowDataList) {
+
+		$rowHeaderNameList = array_keys($rowDataList);
+		$rowDataIndex = -1;
+		$excessBuffer = false;
+		$finalRowDataSent = false;
+
+		list($responseHTTPCode,$responseBody) = $this->OAuth2Request(
+			sprintf(
+				'%s/list/%s/%s/private/full',
+				self::API_BASE_URL,
+				$spreadsheetKey,
+				$worksheetID
+			),
+			function($bytesWriteMax)
+				use (
+					$spreadsheetKey,$worksheetID,
+					$rowDataList,$rowHeaderNameList,
+					&$rowDataIndex,&$excessBuffer,&$finalRowDataSent
+				) {
+
+				if ($finalRowDataSent) {
+					// end of data
+					return '';
+				}
+
+				if ($excessBuffer !== false) {
+					// send more buffer from previous run
+					list($writeBuffer,$excessBuffer) = $this->splitBuffer($bytesWriteMax,$excessBuffer);
+					return $writeBuffer;
+				}
+
+				if ($rowDataIndex < 0) {
+					// emit XML header
+					$rowDataIndex = 0;
+
+					return sprintf(
+						'<entry xmlns="%s" xmlns:gsx="%s/extended">',
+						self::XMLNS_ATOM,
+						self::XMLNS_GOOGLE_SPREADSHEET
+					);
+				}
+
+				if ($rowDataIndex >= count($rowHeaderNameList)) {
+					// no more row column data
+					$finalRowDataSent = true;
+					return '</entry>';
+				}
+
+				$headerName = $rowHeaderNameList[$rowDataIndex];
+				list($writeBuffer,$excessBuffer) = $this->splitBuffer(
+					$bytesWriteMax,
+					sprintf(
+						'<gsx:%1$s>%2$s</gsx:%1$s>',
+						$headerName,
+						htmlspecialchars($rowDataList[$headerName])
+					)
+				);
+
+				$rowDataIndex++;
+
+				// send write buffer
+				return $writeBuffer;
+			}
+		);
+
+		$this->checkAPIResponseError(
+			$responseHTTPCode,$responseBody,
+			'Unable to add worksheet data row'
+		);
 	}
 
 	private function updateWorksheetCellListBuildBatchUpdateEntry(
@@ -494,9 +560,26 @@ class API {
 		];
 	}
 
+	private function splitBuffer($bytesWriteMax,$buffer) {
+
+		if (strlen($buffer) > $bytesWriteMax) {
+			// split buffer at max write bytes and remainder
+			return [
+				substr($buffer,0,$bytesWriteMax),
+				substr($buffer,$bytesWriteMax)
+			];
+		}
+
+		// can send the full buffer at once
+		return [$buffer,false];
+	}
+
 	private function checkAPIResponseError($HTTPCode,$body,$errorMessage) {
 
-		if ($HTTPCode != self::HTTP_CODE_OK) {
+		if (
+			($HTTPCode != self::HTTP_CODE_OK) &&
+			($HTTPCode != self::HTTP_CODE_CREATED)
+		) {
 			// error with API call - throw error with returned message
 			$body = trim(htmlspecialchars_decode($body,ENT_QUOTES));
 
