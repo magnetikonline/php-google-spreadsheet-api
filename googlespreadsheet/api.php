@@ -269,6 +269,29 @@ class API {
 		// return cell list
 		return $worksheetCellList;
 	}
+	
+	public function addListRow($spreadsheetKey, $worksheetID, $rowList) {
+		$buffer = "<entry xmlns='http://www.w3.org/2005/Atom' " .
+					"xmlns:gsx='http://schemas.google.com/spreadsheets/2006/extended'>\n";
+		foreach ($rowList as $header => $value)
+			$buffer .= sprintf("\t<gsx:%s>%s</gsx:%s>\n", $header, $value, $header);
+		$buffer .= "</entry>\n";
+
+		list($responseHTTPCode,$responseBody) = $this->OAuth2Request(
+			sprintf('%s/list/%s/%s/private/full',
+					self::API_BASE_URL,
+					$spreadsheetKey,
+					$worksheetID
+			),
+			function($bytesReadMax) use (&$buffer) { 
+				$ret = substr($buffer,0,$bytesReadMax);
+				$buffer = substr($buffer,$bytesReadMax);
+				return $ret;
+				},
+			null
+		);
+		return true;
+	}
 
 	public function updateWorksheetCellList($spreadsheetKey,$worksheetID,array $worksheetCellList) {
 
