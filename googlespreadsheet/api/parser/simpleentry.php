@@ -67,30 +67,33 @@ class SimpleEntry extends \GoogleSpreadsheet\API\Parser {
 
 	private function addItem(array $entryItem) {
 
-		if (isset(
+		if (!isset(
 			$entryItem['ID'],
 			$entryItem['updated'],
 			$entryItem['name']
 		)) {
-			// if additional element save critera - ensure they were found for entry
-			$saveEntryOK = true;
-			if ($this->additionalElementSaveList) {
-				foreach ($this->additionalElementSaveList as $entryKey) {
-					if (!isset($entryItem[$entryKey])) {
-						// not found - skip entry
-						$saveEntryOK = false;
-						break;
-					}
+			// required entry properties not found
+			return;
+		}
+
+		// if additional element save critera - ensure they were found for entry
+		$saveEntryOK = true;
+		if ($this->additionalElementSaveList) {
+			foreach ($this->additionalElementSaveList as $entryKey) {
+				if (!isset($entryItem[$entryKey])) {
+					// not found - skip entry
+					$saveEntryOK = false;
+					break;
 				}
 			}
+		}
 
-			// extract the entry index from the ID to use as array index
-			if (
-				$saveEntryOK &&
-				preg_match($this->indexRegexp,$entryItem['ID'],$match)
-			) {
-				$this->entryList[$match['index']] = $entryItem;
-			}
+		// extract the entry index from the ID to use as array index
+		if (
+			$saveEntryOK &&
+			preg_match($this->indexRegexp,$entryItem['ID'],$match)
+		) {
+			$this->entryList[$match['index']] = $entryItem;
 		}
 	}
 }
